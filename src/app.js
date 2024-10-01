@@ -130,8 +130,8 @@ async function getNextAvailableIP() {
 
 // Function to update NAT scripts
 async function updateNatScripts(ip, port) {
-    const natPreDownPath = '/path/to/nat-pre-down.sh'; // Update with the correct path
-    const natPostUpPath = '/path/to/nat-post-up.sh'; // Update with the correct path
+    const natPreDownPath = '/root/nat-pre-down.sh'; // Update with the correct path
+    const natPostUpPath = '/root/nat-post-up.sh'; // Update with the correct path
 
     // Prepare commands to update the NAT scripts
     const natPreDownContent = `iptables -t nat -D PREROUTING -i vmbr0 -p tcp --dport ${port} -j DNAT --to ${ip}:22\n`;
