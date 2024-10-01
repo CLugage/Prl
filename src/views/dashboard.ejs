@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="/styles.css" rel="stylesheet">
+    <title>Dashboard</title>
+    <style>
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loading {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div class="max-w-4xl mx-auto p-6">
+        <h2 class="text-3xl font-semibold text-gray-800 mb-5">Dashboard</h2>
+
+        <!-- Button to create a new instance -->
+        <div class="mb-5">
+            <a href="/create-instance" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-lg">Create New Instance</a>
+        </div>
+
+        <!-- Instance Container -->
+        <div id="instanceContainer" class="space-y-5">
+            <% instances.forEach(instance => { %>
+                <div class="bg-white shadow-md rounded-lg p-6">
+                    <h3 class="text-xl font-bold mb-2"><%= instance.name %></h3>
+                    <p class="text-lg text-gray-600">Your SSH command: <code class="font-mono text-blue-600">ssh <%= instance.username %>@<%= instance.hostname %></code></p>
+                    <p class="text-lg text-gray-600">Status: <span class="<%= instance.status === 'Running' ? 'text-green-500' : 'text-red-500' %> font-semibold"><%= instance.status %></span></p>
+                    <div class="flex space-x-4 mt-4">
+                        <button class="stopButton bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-lg" data-id="<%= instance._id %>">Stop Instance</button>
+                        <button class="startButton bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-lg" data-id="<%= instance._id %>">Start Instance</button>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+
+        <a href="/" class="text-blue-500 hover:underline">Logout</a>
+    </div>
+
+    <div id="loading" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div class="loader"></div>
+    </div>
+
+    <script>
+        function showLoader() {
+            document.getElementById('loading').style.display = 'flex';
+        }
+
+        function hideLoader() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        document.querySelectorAll('.stopButton').forEach(button => {
+            button.addEventListener('click', function() {
+                const instanceId = this.getAttribute('data-id');
+                showLoader();
+                fetch(`/api/instances/${instanceId}/stop`, { method: 'POST' })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Instance stopped!');
+                            location.reload();
+                        } else {
+                            alert('Failed to stop instance.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while stopping the instance.');
+                    })
+                    .finally(hideLoader);
+            });
+        });
+
+        document.querySelectorAll('.startButton').forEach(button => {
+            button.addEventListener('click', function() {
+                const instanceId = this.getAttribute('data-id');
+                showLoader();
+                fetch(`/api/instances/${instanceId}/start`, { method: 'POST' })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Instance started!');
+                            location.reload();
+                        } else {
+                            alert('Failed to start instance.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while starting the instance.');
+                    })
+                    .finally(hideLoader);
+            });
+        });
+    </script>
+</body>
+</html>
