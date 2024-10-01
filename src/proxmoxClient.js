@@ -28,25 +28,21 @@ let csrfToken = '';
 // Function to log in to Proxmox
 async function login() {
     try {
-        const response = await proxmox.post('/access/ticket', {
+        const requestData = {
             username: process.env.PROXMOX_USER,
             password: process.env.PROXMOX_PASSWORD,
-        });
-
-        console.log('Login response:', response.data); // Log the response
-
-        const authTicket = response.data.data.ticket;
-        const csrfToken = response.data.data.CSRFPreventionToken;
-
-        // Set the Authorization header for future requests
-        proxmox.defaults.headers['Authorization'] = `PVEAPIToken=${authTicket}`;
-        proxmox.defaults.headers['CSRFPreventionToken'] = csrfToken; // Optional for CSRF
+        };
+        console.log('Login request data:', requestData); // Log the request data
+        const response = await proxmox.post('/access/ticket', requestData);
+        
+        // Handle response...
     } catch (error) {
         console.error('Error logging in to Proxmox:', error.message);
         console.error('Login error response:', error.response?.data); // Log error response for debugging
         throw new Error('Failed to log in to Proxmox');
     }
 }
+
 
 
 // Function to create an LXC container
