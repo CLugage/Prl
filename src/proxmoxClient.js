@@ -20,6 +20,7 @@ const proxmox = axios.create({
     }),
 });
 
+
 // Store authentication ticket and CSRF token
 let authTicket = '';
 let csrfToken = '';
@@ -34,8 +35,8 @@ async function login() {
 
         console.log('Login response:', response.data); // Log the response
 
-        authTicket = response.data.data.ticket;
-        csrfToken = response.data.data.CSRFPreventionToken;
+        const authTicket = response.data.data.ticket;
+        const csrfToken = response.data.data.CSRFPreventionToken;
 
         // Set the Authorization header for future requests
         proxmox.defaults.headers['Authorization'] = `PVEAPIToken=${authTicket}`;
@@ -47,8 +48,10 @@ async function login() {
     }
 }
 
+
 // Function to create an LXC container
 async function createInstance(vmid, osPath, hostname, password, ip, port) {
+    await login();
     try {
         // Log in to Proxmox if not already authenticated
         if (!authTicket) {
