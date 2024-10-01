@@ -14,16 +14,44 @@ const proxmox = axios.create({
     baseURL: `https://${process.env.PROXMOX_HOST}:8006/api2/json`,
     headers: {
         'Content-Type': 'application/json',
-        'Authorization': `PVEAPIToken=${process.env.PROXMOX_TOKEN}`, // Use API token for authentication
     },
     httpsAgent: new https.Agent({
         rejectUnauthorized: false, // Ignore SSL certificate errors
     }),
 });
 
+// Store authentication ticket and CSRF token
+let authTicket = '';
+let csrfToken = '';
+
+// Function to log in to Proxmox
+async function login() {
+    try {
+        const response = await proxmox.post('/access/ticket', {
+            username: process.env.PROXMOX_USER,
+            password: process.env.PROXMOX_PASSWORD,
+        });
+        
+        authTicket = response.data.data.ticket;
+        csrfToken = response.data.data.CSRFPreventionToken;
+
+        // Set the Authorization header for future requests
+        proxmox.defaults.headers['Authorization'] = `PVEAPIToken=${authTicket}`;
+        proxmox.defaults.headers['CSRFPreventionToken'] = csrfToken; // Optional for CSRF
+    } catch (error) {
+        console.error('Error logging in to Proxmox:', error.message);
+        throw new Error('Failed to log in to Proxmox');
+    }
+}
+
 // Function to create an LXC container
 async function createInstance(vmid, osPath, hostname, password, ip, port) {
     try {
+        // Log in to Proxmox if not already authenticated
+        if (!authTicket) {
+            await login();
+        }
+
         // Check if the OS template file exists
         if (!fs.existsSync(osPath)) {
             throw new Error(`OS template not found: ${osPath}`);
