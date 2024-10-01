@@ -31,7 +31,9 @@ async function login() {
             username: process.env.PROXMOX_USER,
             password: process.env.PROXMOX_PASSWORD,
         });
-        
+
+        console.log('Login response:', response.data); // Log the response
+
         authTicket = response.data.data.ticket;
         csrfToken = response.data.data.CSRFPreventionToken;
 
@@ -40,6 +42,7 @@ async function login() {
         proxmox.defaults.headers['CSRFPreventionToken'] = csrfToken; // Optional for CSRF
     } catch (error) {
         console.error('Error logging in to Proxmox:', error.message);
+        console.error('Login error response:', error.response?.data); // Log error response for debugging
         throw new Error('Failed to log in to Proxmox');
     }
 }
