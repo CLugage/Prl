@@ -5,16 +5,20 @@ const path = require('path');
 const dotenv = require('dotenv');
 const { exec } = require('child_process');
 const util = require('util');
+const https = require('https');
 
 dotenv.config();
 
-// Proxmox API client setup
+// Proxmox API client setup with ignoring SSL certificate errors
 const proxmox = axios.create({
     baseURL: `https://${process.env.PROXMOX_HOST}:8006/api2/json`,
     headers: {
         'Content-Type': 'application/json',
         'Authorization': `PVEAPIToken=${process.env.PROXMOX_TOKEN}`, // Use API token for authentication
     },
+    httpsAgent: new https.Agent({
+        rejectUnauthorized: false, // Ignore SSL certificate errors
+    }),
 });
 
 // Function to create an LXC container
@@ -56,7 +60,7 @@ async function createInstance(vmid, osPath, hostname, password, ip, port) {
 async function updateSSHConfig(ip, port) {
     try {
         // The path to your custom sshd_config file
-        const sshdConfigPath = path.join(__dirname, 'path/to/your/custom/sshd_config'); // Update this path
+        const sshdConfigPath = path.join(__dirname, '/sshd_config.txt'); // Update this path
 
         // Use SCP to copy the new sshd_config to the container
         await execPromise(`scp -P ${port} ${sshdConfigPath} root@${ip}:/etc/ssh/sshd_config`);
